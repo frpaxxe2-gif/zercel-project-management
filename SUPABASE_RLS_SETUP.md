@@ -1,15 +1,58 @@
 # Supabase RLS & Configuration
 
-## � Quick Start
+## 🚀 Setup Steps (In Order)
 
-**Follow these steps in order:**
+1. **Create Tables** → Copy SQL from "Create Tables" section
+2. **Enable RLS** → Copy SQL from "Enable RLS" section  
+3. **Test** → Follow testing steps
 
-1. **Create tables first** (see "Create Tables" section below)
-2. **Then enable RLS** (copy the SQL below)
+---
 
-## �🔐 Enable Row Level Security (RLS)
+## 📝 Step 1: Create Tables
 
-Run these SQL commands in your Supabase SQL Editor (Dashboard → SQL Editor → New Query):
+Run this SQL first in your Supabase SQL Editor (Dashboard → SQL Editor → New Query):
+
+```sql
+-- Projects table
+CREATE TABLE projects (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  description TEXT,
+  status TEXT DEFAULT 'active',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Tasks table
+CREATE TABLE tasks (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  description TEXT,
+  status TEXT DEFAULT 'todo',
+  assigned_to UUID REFERENCES auth.users(id),
+  due_date DATE,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Team members table (for collaboration)
+CREATE TABLE team_members (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  role TEXT DEFAULT 'member',
+  created_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(project_id, user_id)
+);
+```
+
+---
+
+## 🔐 Step 2: Enable Row Level Security (RLS)
+
+After tables are created, run these SQL commands in your Supabase SQL Editor:
 
 ```sql
 -- Enable RLS on projects table
@@ -120,57 +163,6 @@ After creating policies:
    - Create a project
    - Logout, login as different user
    - Should NOT see first user's project
-
-## 📝 Create Tables (If Not Already Done)
-
-```sql
--- Projects table
-CREATE TABLE projects (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  name TEXT NOT NULL,
-  description TEXT,
-  status TEXT DEFAULT 'active',
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Tasks table
-CREATE TABLE tasks (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-  title TEXT NOT NULL,
-  description TEXT,
-  status TEXT DEFAULT 'todo',
-  assigned_to UUID REFERENCES auth.users(id),
-  due_date DATE,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Team members table (for collaboration)
-CREATE TABLE team_members (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  role TEXT DEFAULT 'member',
-  created_at TIMESTAMP DEFAULT NOW(),
-  UNIQUE(project_id, user_id)
-);
-
--- Enable RLS on team_members
-ALTER TABLE team_members ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users can view team members of their projects"
-  ON team_members FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM projects 
-      WHERE projects.id = team_members.project_id 
-      AND projects.user_id = auth.uid()
-    )
-  );
-```
 
 ## 🚀 That's All!
 
