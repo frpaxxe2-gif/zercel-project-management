@@ -348,42 +348,38 @@ npm run dev
 
 ---
 
-## 🎯 Summary
+## 🔐 Security - RLS Setup
 
-You now have:
+For production, enable Row Level Security (RLS):
 
-✅ **Flexible authentication**
-- Works with or without Supabase
-- Perfect for development
-- Production-ready when needed
+1. Go to Supabase Dashboard → SQL Editor
+2. Run the SQL from `SUPABASE_RLS_SETUP.md`
+3. This ensures users can only see their own data
 
-✅ **Free infrastructure**
-- Supabase free tier
-- InfinityFree hosting
-- Zero cost to deploy
+Key policies created:
+- Users see only their own projects
+- Users see only tasks in their projects
+- Complete data isolation per user
 
-✅ **Complete documentation**
-- Setup guides
-- Deployment guides
-- Troubleshooting tips
+## 🎯 Setup Checklist
 
-✅ **Ready to deploy**
-- Just add Supabase credentials
-- Or use mock mode
-- Run `npm run build`
-- Upload to InfinityFree
+- [ ] Create Supabase account
+- [ ] Create ProjectHub project
+- [ ] Copy credentials to `.env.local`
+- [ ] (Optional) Run RLS setup SQL
+- [ ] Test signup with real email
+- [ ] Test login
+- [ ] Build and deploy
 
----
+## 📚 Documentation Files
 
-## 📚 Resources
-
-- **Supabase Docs:** https://supabase.com/docs
-- **InfinityFree Help:** https://infinityfree.net/support
-- **React Router:** https://reactrouter.com
-- **This Project:** Check documentation files above
+- `AUTH_README.md` - Authentication features
+- `SUPABASE_CREDENTIALS_SETUP.md` - Get Supabase credentials
+- `SUPABASE_RLS_SETUP.md` - Security policies
+- `DEPLOY_INFINITYFREE.md` - Deploy to InfinityFree
 
 ---
 
 **Your ProjectHub is ready for production!** 🎉
 
-Next step: Read `SUPABASE_SETUP.md` for quick setup
+Start with: Add your Supabase credentials to `.env.local`
