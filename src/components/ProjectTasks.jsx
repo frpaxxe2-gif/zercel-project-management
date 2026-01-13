@@ -213,7 +213,7 @@ const ProjectTasks = ({ tasks }) => {
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-2">
-                                                    <span className={`text-xs px-2 py-1 rounded ${background} ${prioritycolor}">{task.priority}</span>
+                                                    <span className={`text-xs px-2 py-1 rounded ${background} ${prioritycolor}`}>{task.priority}</span>
                                                 </td>
                                                 <td onClick={e => e.stopPropagation()} className="px-4 py-2">
                                                     <select name="status" onChange={(e) => handleStatusChange(task.id, e.target.value)} value={task.status} className="group-hover:ring ring-zinc-100 outline-none px-2 pr-4 py-1 rounded text-sm text-zinc-900 dark:text-zinc-200 cursor-pointer" >
@@ -276,12 +276,12 @@ const ProjectTasks = ({ tasks }) => {
                                         </div>
 
                                         <div className="text-xs text-zinc-600 dark:text-zinc-400 flex items-center gap-2">
-                                            {Icon && <Icon className={`size-4 ${color}`} />}
-                                            <span className={`${color} uppercase`}>{task.type}</span>
+                                            {Icon && <Icon className="size-4" style={{color}} />}
+                                            <span style={{color}} className="uppercase">{task.type}</span>
                                         </div>
 
                                         <div>
-                                            <span className={`text-xs px-2 py-1 rounded ${background} ${prioritycolor}`}>
+                                            <span className="text-xs px-2 py-1 rounded" style={{...background, ...prioritycolor}}>
                                                 {task.priority}
                                             </span>
                                         </div>
