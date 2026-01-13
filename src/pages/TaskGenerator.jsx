@@ -132,6 +132,21 @@ export default function TaskGenerator() {
           </p>
         </div>
 
+        {/* Setup Notice */}
+        <div className="mb-8 bg-blue-900/30 border border-blue-700 rounded-lg p-4">
+          <p className="text-sm text-blue-300">
+            <strong>⚙️ Setup Required:</strong> Add AI API key to .env.local before using. See{' '}
+            <a href="https://github.com/frpaxxe2-gif/zercel-project-management#setup" 
+               className="underline hover:text-blue-200" target="_blank" rel="noreferrer">
+              setup docs
+            </a>
+            . Need a test document?{' '}
+            <a href="/example-prd.txt" className="underline hover:text-blue-200" download>
+              Download example PRD
+            </a>
+          </p>
+        </div>
+
         {!generatedData ? (
           <div className="bg-gray-800 rounded-lg p-12 text-center border border-gray-700">
             <div className="text-6xl mb-4">📄</div>
