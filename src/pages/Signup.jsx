@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { User, Mail, Lock, Eye, EyeOff, ArrowRight, Check } from 'lucide-react';
+import { User, Mail, Lock, Eye, EyeOff, ArrowRight, Check, Github } from 'lucide-react';
 import { useAuth } from '../context/useAuth';
 
 export default function Signup() {
     const navigate = useNavigate();
-    const { signup, loading } = useAuth();
+    const { signup, loading, loginWithGitHub } = useAuth();
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -194,6 +194,16 @@ export default function Signup() {
                             {!loading && <ArrowRight className="w-5 h-5" />}
                         </button>
                     </form>
+
+                    {/* GitHub Signup Button */}
+                    <button
+                        type="button"
+                        onClick={loginWithGitHub}
+                        className="w-full py-3 mt-4 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-lg flex items-center justify-center gap-2 shadow-md transition"
+                    >
+                        <Github className="w-5 h-5" />
+                        Sign up with GitHub
+                    </button>
 
                     {/* Login Link */}
                     <div className="mt-6 text-center">

@@ -4,7 +4,8 @@ import { useDispatch } from "react-redux";
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { deleteTask, updateTask } from "../features/workspaceSlice";
-import { Bug, CalendarIcon, GitCommit, MessageSquare, Square, Trash, XIcon, Zap } from "lucide-react";
+import { Bug, CalendarIcon, GitCommit, MessageSquare, Square, Trash, XIcon, Zap, Github } from "lucide-react";
+import { useAuth } from "../context/useAuth";
 
 const typeIcons = {
     BUG: { icon: Bug, color: "text-red-600 dark:text-red-400" },
@@ -21,6 +22,33 @@ const priorityTexts = {
 };
 
 const ProjectTasks = ({ tasks }) => {
+    const { githubService } = useAuth();
+    const [codespaceLoading, setCodespaceLoading] = useState({});
+        // Spawn Codespace handler
+        const handleSpawnCodespace = async (task) => {
+            if (!githubService) {
+                toast.error("GitHub not connected");
+                return;
+            }
+            setCodespaceLoading((prev) => ({ ...prev, [task.id]: true }));
+            toast.loading("Spawning Codespace...");
+            try {
+                // You may want to use a branch per task, or just use main
+                const branch = task.branch || 'main';
+                const owner = task.repoOwner || task.owner || 'your-github-username';
+                const repo = task.repoName || task.repo || 'your-repo-name';
+                // TODO: Replace with real owner/repo from your project/task model
+                const codespace = await githubService.createCodespace(owner, repo, branch);
+                toast.dismiss();
+                toast.success("Codespace spawned!");
+                // Optionally, open Codespace URL or show details
+            } catch (err) {
+                toast.dismiss();
+                toast.error(err?.message || "Failed to spawn Codespace");
+            } finally {
+                setCodespaceLoading((prev) => ({ ...prev, [task.id]: false }));
+            }
+        };
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [selectedTasks, setSelectedTasks] = useState([]);
@@ -185,9 +213,7 @@ const ProjectTasks = ({ tasks }) => {
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-2">
-                                                    <span className={`text-xs px-2 py-1 rounded ${background} ${prioritycolor}`}>
-                                                        {task.priority}
-                                                    </span>
+                                                    <span className={`text-xs px-2 py-1 rounded ${background} ${prioritycolor}">{task.priority}</span>
                                                 </td>
                                                 <td onClick={e => e.stopPropagation()} className="px-4 py-2">
                                                     <select name="status" onChange={(e) => handleStatusChange(task.id, e.target.value)} value={task.status} className="group-hover:ring ring-zinc-100 outline-none px-2 pr-4 py-1 rounded text-sm text-zinc-900 dark:text-zinc-200 cursor-pointer" >
@@ -207,6 +233,19 @@ const ProjectTasks = ({ tasks }) => {
                                                         <CalendarIcon className="size-4" />
                                                         {format(new Date(task.due_date), "dd MMMM")}
                                                     </div>
+                                                    {/* Spawn Codespace Button */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={e => { e.stopPropagation(); handleSpawnCodespace(task); }}
+                                                        disabled={codespaceLoading[task.id] || !githubService}
+                                                        className="mt-2 flex items-center gap-1 px-2 py-1 rounded bg-gray-900 text-white hover:bg-gray-800 text-xs disabled:opacity-60 disabled:cursor-not-allowed"
+                                                    >
+                                                        <Github className="w-4 h-4" />
+                                                        {codespaceLoading[task.id] ? "Spawning..." : "Spawn Codespace"}
+                                                    </button>
+                                                    {!githubService && (
+                                                        <div className="text-xs text-red-500 mt-1">Connect GitHub</div>
+                                                    )}
                                                 </td>
                                             </tr>
                                         );

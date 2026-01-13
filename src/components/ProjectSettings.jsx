@@ -1,12 +1,35 @@
 import { format } from "date-fns";
-import { Plus, Save, Trash2, Archive, Bell, Check, X, AlertTriangle } from "lucide-react";
+import { Plus, Save, Trash2, Archive, Bell, Check, X, AlertTriangle, Github } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import AddProjectMember from "./AddProjectMember";
+import { useAuth } from "../context/useAuth";
 
 export default function ProjectSettings({ project }) {
     const navigate = useNavigate();
+    const { githubService } = useAuth();
+    const [isCreatingRepo, setIsCreatingRepo] = useState(false);
+    // Create GitHub Repo handler
+    const handleCreateRepo = async () => {
+        if (!githubService) {
+            toast.error("GitHub not connected");
+            return;
+        }
+        setIsCreatingRepo(true);
+        toast.loading("Creating GitHub repository...");
+        try {
+            const repo = await githubService.createRepository(formData.name, formData.description, formData.visibility === "PRIVATE");
+            toast.dismiss();
+            toast.success("Repository created: " + repo.full_name);
+            // Optionally, store repo info in project state/db here
+        } catch (err) {
+            toast.dismiss();
+            toast.error(err?.message || "Failed to create repo");
+        } finally {
+            setIsCreatingRepo(false);
+        }
+    };
 
     const [formData, setFormData] = useState({
         name: "New Website Launch",
@@ -113,6 +136,21 @@ export default function ProjectSettings({ project }) {
 
     return (
         <div className="space-y-6">
+            {/* GitHub Repo Creation */}
+            <div className="flex items-center gap-4 mb-2">
+                <button
+                    type="button"
+                    onClick={handleCreateRepo}
+                    disabled={isCreatingRepo || !githubService}
+                    className="flex items-center gap-2 px-4 py-2 rounded bg-gray-900 text-white hover:bg-gray-800 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                    <Github className="w-5 h-5" />
+                    {isCreatingRepo ? "Creating..." : "Create GitHub Repo"}
+                </button>
+                {!githubService && (
+                    <span className="text-xs text-red-500">Connect GitHub in Integrations first</span>
+                )}
+            </div>
             {/* Settings Tab Navigation */}
             <div className="flex flex-wrap gap-2 border-b border-zinc-200 dark:border-zinc-700 pb-4">
                 {settingsTabs.map((tab) => (

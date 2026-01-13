@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Zap, Github, Database, Cloud, CheckCircle, XCircle, Settings, ArrowLeft, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
+import { useAuth } from "../context/useAuth";
+
 export default function Integrations() {
     const navigate = useNavigate();
+    const { loginWithGitHub, githubToken } = useAuth();
+
     const [connectedIntegrations, setConnectedIntegrations] = useState({
         github: false,
         supabase: false,
@@ -19,6 +23,18 @@ export default function Integrations() {
         googledrive: false,
         dropbox: false,
     });
+
+    const [loadingIds, setLoadingIds] = useState({});
+
+    // Reflect real auth/config state
+    useEffect(() => {
+        const supabaseConfigured = !!(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY);
+        setConnectedIntegrations((prev) => ({
+            ...prev,
+            github: !!githubToken,
+            supabase: supabaseConfigured || prev.supabase,
+        }));
+    }, [githubToken]);
 
     const integrations = [
         {
@@ -133,27 +149,72 @@ export default function Integrations() {
 
     const handleConnect = async (integrationId) => {
         try {
-            toast.loading(`Connecting to ${integrations.find(i => i.id === integrationId)?.name}...`);
-            await new Promise((resolve) => setTimeout(resolve, 1500));
-            setConnectedIntegrations({ ...connectedIntegrations, [integrationId]: true });
-            toast.dismissAll();
-            toast.success("Integration connected successfully");
-        } catch {
-            toast.dismissAll();
-            toast.error("Failed to connect integration");
+            setLoadingIds((s) => ({ ...s, [integrationId]: true }));
+
+            if (integrationId === 'github') {
+                // Use Supabase OAuth flow handled by AuthContext
+                toast.loading('Redirecting to GitHub for authorization...');
+                const result = await loginWithGitHub();
+                toast.dismissAll();
+
+                if (!result || !result.success) {
+                    toast.error(result?.error || 'Failed to start GitHub OAuth');
+                    return;
+                }
+
+                // When OAuth completes Supabase will redirect back and session will be available
+                toast.success('Please authorize the app in GitHub. You will be redirected back when complete.');
+                return;
+            }
+
+            if (integrationId === 'supabase') {
+                const supabaseConfigured = !!(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY);
+                if (supabaseConfigured) {
+                    setConnectedIntegrations((s) => ({ ...s, supabase: true }));
+                    toast.success('Supabase is configured for this app');
+                } else {
+                    toast('Supabase is not configured. See setup docs.', { icon: '⚠️' });
+                }
+
+                return;
+            }
+
+            // Fallback: open documentation for other integrations
+            const integration = integrations.find(i => i.id === integrationId);
+            window.open(integration.docs, '_blank');
+            toast.success(`Opened docs for ${integration.name}`);
+        } catch (err) {
+            toast.error(err?.message || 'Failed to connect integration');
+        } finally {
+            setLoadingIds((s) => ({ ...s, [integrationId]: false }));
         }
     };
 
     const handleDisconnect = async (integrationId) => {
         try {
-            toast.loading(`Disconnecting from ${integrations.find(i => i.id === integrationId)?.name}...`);
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            setConnectedIntegrations({ ...connectedIntegrations, [integrationId]: false });
-            toast.dismissAll();
-            toast.success("Integration disconnected successfully");
-        } catch {
-            toast.dismissAll();
-            toast.error("Failed to disconnect integration");
+            setLoadingIds((s) => ({ ...s, [integrationId]: true }));
+
+            if (integrationId === 'github') {
+                // We cannot safely revoke provider access from client-side only in a generic way.
+                // Inform the user what to do and update UI locally.
+                setConnectedIntegrations((s) => ({ ...s, github: false }));
+                toast.success('Disconnected locally. To fully revoke access, remove the app from your GitHub account or unlink the provider from your Supabase account.');
+                return;
+            }
+
+            if (integrationId === 'supabase') {
+                setConnectedIntegrations((s) => ({ ...s, supabase: false }));
+                toast.success('Supabase connection cleared locally. To fully disable, update app config or environment variables.');
+                return;
+            }
+
+            // Fallback: just mark disconnected locally
+            setConnectedIntegrations((s) => ({ ...s, [integrationId]: false }));
+            toast.success('Integration disconnected successfully');
+        } catch (err) {
+            toast.error(err?.message || 'Failed to disconnect integration');
+        } finally {
+            setLoadingIds((s) => ({ ...s, [integrationId]: false }));
         }
     };
 
@@ -260,16 +321,18 @@ export default function Integrations() {
                             {connectedIntegrations[integration.id] ? (
                                 <button
                                     onClick={() => handleDisconnect(integration.id)}
-                                    className="flex-1 px-4 py-2 rounded-lg border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition font-medium text-sm"
+                                    disabled={!!loadingIds[integration.id]}
+                                    className={`flex-1 px-4 py-2 rounded-lg border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition font-medium text-sm ${loadingIds[integration.id] ? 'opacity-60 cursor-not-allowed' : ''}`}
                                 >
-                                    Disconnect
+                                    {loadingIds[integration.id] ? 'Disconnecting...' : 'Disconnect'}
                                 </button>
                             ) : (
                                 <button
                                     onClick={() => handleConnect(integration.id)}
-                                    className="flex-1 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition font-medium text-sm"
+                                    disabled={!!loadingIds[integration.id]}
+                                    className={`flex-1 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition font-medium text-sm ${loadingIds[integration.id] ? 'opacity-60 cursor-not-allowed' : ''}`}
                                 >
-                                    Connect
+                                    {loadingIds[integration.id] ? 'Connecting...' : 'Connect'}
                                 </button>
                             )}
                             <a
@@ -332,6 +395,8 @@ export default function Integrations() {
                         integration guides
                     </a>
                     .
+                    
+                    Use **Connect** on GitHub to authorize via OAuth (handled by Supabase).
                 </p>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
                     Questions? Contact our support team at{" "}

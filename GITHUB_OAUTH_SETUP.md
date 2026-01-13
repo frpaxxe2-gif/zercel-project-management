@@ -54,6 +54,10 @@ No frontend environment variables needed! Supabase handles everything.
 
 If you were using `VITE_GITHUB_CLIENT_ID`, you can remove it.
 
+## Connect via the Application
+
+You can also connect GitHub from within the application via **Settings → Integrations → GitHub**. Clicking **Connect** will start the OAuth flow and redirect you to GitHub to authorize the app. After authorizing, you'll be redirected back to the app where the connection status will be shown in the Integrations settings.
+
 ## How It Works
 
 1. User clicks **"Login with GitHub"** on your site
