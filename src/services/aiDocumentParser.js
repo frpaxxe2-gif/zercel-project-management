@@ -17,6 +17,11 @@ class AIDocumentParser {
 
   // Parse PRD/TDD document and generate task breakdown
   async parseDocument(documentContent, documentType = 'PRD') {
+    // Check for DEMO mode (useful for testing without API keys)
+    if (import.meta.env.VITE_DEMO_MODE === 'true') {
+      return this._generateDemoData(documentContent, documentType);
+    }
+
     // Prefer OpenRouter if configured (acts as a free proxy to multiple models)
     if (OPENROUTER_API_KEY) {
       return this._parseWithOpenRouter(documentContent, documentType);
@@ -195,6 +200,126 @@ ${documentContent}
   // Validate document structure
   isValidDocument(content) {
     return content && content.length > 100; // Basic validation
+  }
+
+  // Demo mode: Generate sample data for testing without API
+  _generateDemoData(documentContent, documentType) {
+    // Simulate processing delay
+    const delay = new Promise(resolve => setTimeout(resolve, 1500));
+    
+    return delay.then(() => ({
+      success: true,
+      data: {
+        epics: [
+          {
+            name: 'Authentication',
+            description: 'User authentication and authorization system',
+            priority: 'critical'
+          },
+          {
+            name: 'Core Features',
+            description: 'Main application functionality',
+            priority: 'high'
+          },
+          {
+            name: 'Admin Dashboard',
+            description: 'Administrative tools and management',
+            priority: 'high'
+          },
+          {
+            name: 'Testing & QA',
+            description: 'Quality assurance and testing',
+            priority: 'medium'
+          }
+        ],
+        tasks: [
+          {
+            title: 'Set up authentication system',
+            description: 'Implement JWT-based user authentication',
+            epic: 'Authentication',
+            type: 'backend',
+            priority: 'critical',
+            estimatedComplexity: 'medium',
+            dependencies: [],
+            requiredSkills: ['node.js', 'express', 'jwt'],
+            suggestedOrder: 1
+          },
+          {
+            title: 'Create login page UI',
+            description: 'Build responsive login form with validation',
+            epic: 'Authentication',
+            type: 'frontend',
+            priority: 'critical',
+            estimatedComplexity: 'easy',
+            dependencies: ['Set up authentication system'],
+            requiredSkills: ['react', 'tailwind'],
+            suggestedOrder: 2
+          },
+          {
+            title: 'Implement core feature module',
+            description: 'Build main feature with full CRUD operations',
+            epic: 'Core Features',
+            type: 'backend',
+            priority: 'high',
+            estimatedComplexity: 'hard',
+            dependencies: ['Set up authentication system'],
+            requiredSkills: ['node.js', 'postgresql', 'api'],
+            suggestedOrder: 3
+          },
+          {
+            title: 'Build feature dashboard',
+            description: 'Create interactive dashboard UI',
+            epic: 'Core Features',
+            type: 'frontend',
+            priority: 'high',
+            estimatedComplexity: 'hard',
+            dependencies: ['Implement core feature module'],
+            requiredSkills: ['react', 'charts', 'tailwind'],
+            suggestedOrder: 4
+          },
+          {
+            title: 'Admin management interface',
+            description: 'Build admin panel with user management',
+            epic: 'Admin Dashboard',
+            type: 'frontend',
+            priority: 'high',
+            estimatedComplexity: 'medium',
+            dependencies: ['Create login page UI'],
+            requiredSkills: ['react', 'forms', 'tailwind'],
+            suggestedOrder: 5
+          },
+          {
+            title: 'Unit tests',
+            description: 'Write comprehensive unit tests',
+            epic: 'Testing & QA',
+            type: 'testing',
+            priority: 'medium',
+            estimatedComplexity: 'medium',
+            dependencies: ['Implement core feature module'],
+            requiredSkills: ['jest', 'testing'],
+            suggestedOrder: 6
+          },
+          {
+            title: 'Integration tests',
+            description: 'Write integration tests for API',
+            epic: 'Testing & QA',
+            type: 'testing',
+            priority: 'medium',
+            estimatedComplexity: 'hard',
+            dependencies: ['Unit tests'],
+            requiredSkills: ['jest', 'testing', 'api'],
+            suggestedOrder: 7
+          }
+        ],
+        summary: {
+          totalTasks: 7,
+          estimatedDuration: '2-3 weeks',
+          requiredTeamSize: '2-3 developers',
+          keyRisks: ['API integration complexity', 'Testing coverage']
+        }
+      },
+      raw: '[DEMO DATA]'
+    }));
   }
 }
 

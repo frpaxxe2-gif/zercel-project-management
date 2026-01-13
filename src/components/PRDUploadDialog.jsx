@@ -70,7 +70,16 @@ export default function PRDUploadDialog({ onTasksGenerated, isOpen, onClose }) {
       }
     } catch (error) {
       toast.dismiss();
-      toast.error(`Failed to parse document: ${error.message}`);
+      const errorMsg = error.message || 'Failed to parse document';
+      
+      // Provide helpful error messages
+      if (errorMsg.includes('API key') || errorMsg.includes('No AI API')) {
+        toast.error('❌ No AI API key configured\n\nAdd to .env.local:\nVITE_OPENROUTER_API_KEY=sk-or-...');
+      } else if (errorMsg.includes('401') || errorMsg.includes('403')) {
+        toast.error('❌ Invalid API key. Check your credentials.');
+      } else {
+        toast.error(`Failed: ${errorMsg}`);
+      }
       console.error('Parse error:', error);
     } finally {
       setLoading(false);
