@@ -23,6 +23,13 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Verify dist folder
+        run: |
+          echo "Checking dist folder..."
+          ls -lah dist/
+          echo "Files in dist:"
+          find dist -type f
+
       - name: Deploy to InfinityFree via FTP
         uses: SamKirkland/FTP-Deploy-Action@4.3.1
         with:
@@ -33,3 +40,15 @@ jobs:
           port: 21
           local-dir: dist/
           server-dir: ${{ secrets.INF_SERVER_DIR }}/
+          exclude: |
+            **/.git*
+            **/node_modules/**
+            **/.env*
+            **/dist/**
+
+      - name: Deployment Status
+        if: always()
+        run: |
+          echo "Deployment workflow completed"
+          echo "Check InfinityFree control panel to verify files were uploaded"
+
